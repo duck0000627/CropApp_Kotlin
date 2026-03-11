@@ -1,6 +1,7 @@
 package com.example.cropapp.data.local
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -18,4 +19,7 @@ interface CropDao {
     // suspend 關鍵字代表這是一個非同步操作，必須在背景執行 (Coroutines)
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCrop(crop: CropRecord)
+
+    @Delete
+    suspend fun deleteCrop(crop: CropRecord)
 }

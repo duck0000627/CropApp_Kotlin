@@ -15,4 +15,9 @@ class CropRepository(private val cropDao: CropDao) {
     suspend fun insertCrop(crop: CropRecord) {
         cropDao.insertCrop(crop)
     }
+
+    //刪除
+    suspend fun deleteCrop(crop: CropRecord) {
+        cropDao.deleteCrop(crop)
+    }
 }

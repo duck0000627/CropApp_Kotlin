@@ -31,4 +31,10 @@ class CropListViewModel(private val repository: CropRepository) : ViewModel() {
             repository.insertCrop(newRecord)
         }
     }
+    //刪除
+    fun deleteCropRecord(crop: CropRecord) {
+        viewModelScope.launch {
+            repository.deleteCrop(crop)
+        }
+    }
 }
