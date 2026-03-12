@@ -13,10 +13,9 @@ import com.example.cropapp.data.model.CropRecord // 記得匯入你剛剛寫的 
 
 @Composable
 fun CropItemCard(record: CropRecord) {
-    // Card 對應 Flutter 的 Card Widget
     Card(
         modifier = Modifier
-            .fillMaxWidth() // 類似 Flutter 的 width: double.infinity
+            .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp), // 設定外距 (Margin)
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // 設定陰影
     ) {
@@ -34,28 +33,14 @@ fun CropItemCard(record: CropRecord) {
 
             Spacer(modifier = Modifier.height(8.dp)) // 產生垂直間距
 
+            Text(text = "田區：${record.field}")
+            Text(text = "工作內容：${record.task}")
+
             // 顯示肥料與用量
-            Text(
-                text = "肥料：${record.fertilizerName}"
-            )
-            Text(
-                text = "用量：${record.amount} ${record.unit}"
-            )
+            if (record.task == "施肥") {
+                Text(text = "肥料：${record.fertilizerName}")
+                Text(text = "用量：${record.amount} ${record.unit}")
+            }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewCropItemCard() {
-    // 我們自己捏造一筆假資料，專門用來預覽畫面
-    val dummyRecord = CropRecord(
-        cropName = "高麗菜",
-        fertilizerName = "氮肥",
-        amount = 5.0,
-        unit = "kg"
-    )
-
-    // 呼叫我們剛剛寫好的 UI 卡片
-    CropItemCard(record = dummyRecord)
 }

@@ -1,21 +1,28 @@
 package com.example.cropapp.ui.crop_list
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,12 +32,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cropapp.data.model.CropRecord
 
-
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CropListScreen(viewModel: CropListViewModel) {
     // 監聽 ViewModel 的 StateFlow。
@@ -43,6 +52,18 @@ fun CropListScreen(viewModel: CropListViewModel) {
 
     // Scaffold 提供了一個基本的畫面骨架，跟 Flutter 的 Scaffold 概念完全一模一樣！
     Scaffold(
+        containerColor = Color(0xFFF0F5F1),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("農作物紀錄")
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+        },
         floatingActionButton = {
             // 右下角的懸浮按鈕
             FloatingActionButton(onClick = {
@@ -56,49 +77,54 @@ fun CropListScreen(viewModel: CropListViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues), // 佔滿整個螢幕
-            contentPadding = PaddingValues(vertical = 8.dp), // 清單上下的內距
+            contentPadding = PaddingValues(vertical = 80.dp), // 清單上下的內距
             verticalArrangement = Arrangement.spacedBy(4.dp) // 每張卡片之間的間距
         ) {
-            // items() 是一個特殊的函式，用來把 List 轉換成一個個的 UI 元件
-            items(items = crops, key = { it.id }) { record ->
-                // 1. 記住滑動的狀態
-                val dismissState = rememberSwipeToDismissBoxState(
-                    confirmValueChange = { dismissValue ->
-                        // 當使用者由右向左滑動到底 (EndToStart) 時
-                        if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                            // 呼叫 ViewModel 刪除這筆資料
-                            viewModel.deleteCropRecord(record)
-                            true // 回傳 true 代表允許元件被滑掉
-                        } else {
-                            false // 其他滑動方向不處理，彈回原位
+            val groupedCrops = crops.groupBy { it.date }
+            groupedCrops.forEach { (date, recordsForDate) ->
+                //這會讓日期標題在往上滑動時，黏在畫面的最頂端，直到下一個日期標題把它頂上去為止
+                stickyHeader { DateHelper(date) }
+                items(items = recordsForDate, key = { it.id }) { record ->
+                    // 1. 記住滑動的狀態
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = { dismissValue ->
+                            // 當使用者由右向左滑動到底 (EndToStart) 時
+                            if (dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                                // 呼叫 ViewModel 刪除這筆資料
+                                viewModel.deleteCropRecord(record)
+                                true // 回傳 true 代表允許元件被滑掉
+                            } else {
+                                false // 其他滑動方向不處理，彈回原位
+                            }
                         }
-                    }
-                )
+                    )
 
-                SwipeToDismissBox(
-                    state = dismissState,
-                    enableDismissFromStartToEnd = false,
-                    // 滑動時露出來的「背景」
-                    backgroundContent = {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .background(Color.Red),
-                            contentAlignment = Alignment.CenterEnd
-                        ) {
-                            Text(
-                                text = "刪除",
-                                color = Color.White,
-                                modifier = Modifier.padding(end = 16.dp)
-                            )
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        enableDismissFromStartToEnd = false,
+                        // 滑動時露出來的「背景」
+                        backgroundContent = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color.Red),
+                                contentAlignment = Alignment.CenterEnd
+                            ) {
+                                Text(
+                                    text = "刪除",
+                                    color = Color.White,
+                                    modifier = Modifier.padding(end = 16.dp)
+                                )
+                            }
+                        },
+                        content = {
+                            // 4. 這是原本顯示在最上層的卡片
+                            CropItemCard(record = record)
                         }
-                    },
-                    content = {
-                        // 4. 這是原本顯示在最上層的卡片
-                        CropItemCard(record = record)
-                    }
-                )
+                    )
+                }
             }
         }
         // 判斷是否要顯示對話框
@@ -108,11 +134,14 @@ fun CropListScreen(viewModel: CropListViewModel) {
                     // 按下取消時，關閉對話框
                     showAddDialog = false
                 },
-                onConfirm = { inputCropName, inputFertilizer, inputAmount ->
+                onConfirm = { inputDate, inputCropName, inputField, inputTask, inputFertilizer, inputAmount ->
                     // 按下儲存時：
                     // 1. 呼叫 ViewModel 寫入真實資料
                     viewModel.addCropRecord(
+                        date = inputDate,
                         cropName = inputCropName,
+                        field = inputField,
+                        task = inputTask,
                         fertilizerName = inputFertilizer,
                         amount = inputAmount
                     )
@@ -121,5 +150,23 @@ fun CropListScreen(viewModel: CropListViewModel) {
                 }
             )
         }
+    }
+}
+
+@Composable
+fun DateHelper(date: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            // 讓標題有一點微透明的底色，滑動時蓋過後面的卡片會比較好看
+            .background(Color(0xE6F0F5F1))
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(
+            text = date,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium
+        )
     }
 }

@@ -21,10 +21,20 @@ class CropListViewModel(private val repository: CropRepository) : ViewModel() {
         )
 
     // 提供給 UI 呼叫的新增功能
-    fun addCropRecord(cropName: String, fertilizerName: String, amount: Double) {
+    fun addCropRecord(
+        date: String,
+        cropName: String,
+        field: String,
+        task: String,
+        fertilizerName: String,
+        amount: Double
+    ) {
         viewModelScope.launch {
             val newRecord = CropRecord(
+                date = date,
                 cropName = cropName,
+                field = field,
+                task = task,
                 fertilizerName = fertilizerName,
                 amount = amount
             )
