@@ -20,6 +20,14 @@ class CropListViewModel(private val repository: CropRepository) : ViewModel() {
             initialValue = emptyList() // 初始畫面為空清單
         )
 
+    //init 區塊會在 ViewModel 誕生時立刻執行一次
+    init {
+        viewModelScope.launch {
+            // App 一打開，就在背景偷偷去雲端抓資料
+            repository.refreshCrops()
+        }
+    }
+
     // 提供給 UI 呼叫的新增功能
     fun addCropRecord(
         date: String,

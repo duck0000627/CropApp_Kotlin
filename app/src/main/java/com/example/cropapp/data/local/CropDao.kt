@@ -26,4 +26,14 @@ interface CropDao {
 
     @Delete
     suspend fun deleteCrop(crop: CropRecord)
+
+    // 🔍 找出所有還沒上傳的邊緣人
+    @Query("SELECT * FROM crop_records WHERE isSynced = 0")
+    suspend fun getUnsyncedCrops(): List<CropRecord>
+
+    @Query("DELETE FROM crop_records WHERE isSynced = 1")
+    suspend fun deleteSyncedCrops()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllCrops(crops: List<CropRecord>)
 }

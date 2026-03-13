@@ -62,4 +62,9 @@ dependencies {
     implementation("androidx.room:room-runtime:${room_version}")
     implementation("androidx.room:room-ktx:$room_version") // 支援 Coroutines 與 Flow
     ksp("androidx.room:room-compiler:$room_version")
+
+    // Retrofit 核心套件
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    // Gson 轉換器：負責自動把網路抓到的 JSON 字串變成 Kotlin 的資料物件 (Data Class)
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }
