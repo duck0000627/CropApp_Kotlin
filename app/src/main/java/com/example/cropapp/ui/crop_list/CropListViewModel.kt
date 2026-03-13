@@ -41,6 +41,14 @@ class CropListViewModel(private val repository: CropRepository) : ViewModel() {
             repository.insertCrop(newRecord)
         }
     }
+
+    //edit
+    fun updateCropRecord(updatedRecord: CropRecord) {
+        viewModelScope.launch {
+            repository.updateCrop(updatedRecord)
+        }
+    }
+
     //刪除
     fun deleteCropRecord(crop: CropRecord) {
         viewModelScope.launch {

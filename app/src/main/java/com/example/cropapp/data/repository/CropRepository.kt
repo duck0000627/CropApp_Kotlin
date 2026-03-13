@@ -16,6 +16,11 @@ class CropRepository(private val cropDao: CropDao) {
         cropDao.insertCrop(crop)
     }
 
+    //edit
+    suspend fun updateCrop(crop: CropRecord) {
+        cropDao.updateCrop(crop)
+    }
+
     //刪除
     suspend fun deleteCrop(crop: CropRecord) {
         cropDao.deleteCrop(crop)

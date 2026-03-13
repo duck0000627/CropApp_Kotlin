@@ -1,5 +1,7 @@
 package com.example.cropapp.ui.crop_list // 這裡要注意是否符合你的資料夾路徑
 
+import android.R.attr.onClick
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -12,10 +14,11 @@ import androidx.compose.ui.unit.dp
 import com.example.cropapp.data.model.CropRecord // 記得匯入你剛剛寫的 Data Class
 
 @Composable
-fun CropItemCard(record: CropRecord) {
+fun CropItemCard(record: CropRecord, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable{ onClick() }
             .padding(horizontal = 16.dp, vertical = 8.dp), // 設定外距 (Margin)
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp) // 設定陰影
     ) {

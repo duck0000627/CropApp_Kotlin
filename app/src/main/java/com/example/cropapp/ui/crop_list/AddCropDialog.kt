@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.cropapp.data.model.CropRecord
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -35,10 +36,11 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddCropDialog(
+    initialRecord: CropRecord? = null,
     onDismiss: () -> Unit, // 當對話框關閉時觸發
     onConfirm: (String, String, String, String, String, Double) -> Unit // 當按下儲存時觸發，並把資料傳出去
 ) {
-    var date by remember { mutableStateOf(SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(
+    var date by remember { mutableStateOf(initialRecord?.date ?: SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()).format(
         Date()
     )) }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -48,17 +50,17 @@ fun AddCropDialog(
     val workOptions = listOf("播種", "施肥", "澆水")
 
     // 儲存使用者目前選到的值 (預設先選清單的第一個)
-    var cropName by remember { mutableStateOf(cropOptions[0]) }
-    var field by remember { mutableStateOf(fieldOptions[0]) }
-    var task by remember { mutableStateOf(workOptions[0]) }
+    var cropName by remember { mutableStateOf(initialRecord?.cropName ?: cropOptions[0]) }
+    var field by remember { mutableStateOf(initialRecord?.field ?: fieldOptions[0]) }
+    var task by remember { mutableStateOf(initialRecord?.task ?: workOptions[0]) }
 
     // 文字輸入框的狀態
-    var fertilizerName by remember { mutableStateOf("") }
-    var amount by remember { mutableStateOf("") }
+    var fertilizerName by remember { mutableStateOf(initialRecord?.fertilizerName ?: "") }
+    var amount by remember { mutableStateOf(initialRecord?.amount?.toString() ?: "") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("新增工作紀錄") },
+        title = { Text(if (initialRecord != null)"編輯工作紀錄" else "新增工作紀錄") },
         text = {
             // Column 讓輸入框垂直排列
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -108,7 +110,7 @@ fun AddCropDialog(
                         value = amount,
                         onValueChange = { amount = it },
                         label = { Text("用量 (kg)") },
-                        // 將鍵盤限制為只能輸入數字 (這點跟 Flutter 很像！)
+                        // 將鍵盤限制為只能輸入數字
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.fillMaxWidth()
                     )

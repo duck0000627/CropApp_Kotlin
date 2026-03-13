@@ -50,6 +50,8 @@ fun CropListScreen(viewModel: CropListViewModel) {
     // 預設為 false (不顯示)
     var showAddDialog by remember { mutableStateOf(false) }
 
+    var recordToEdit by remember { mutableStateOf<CropRecord?>(null) } //記住正在編輯哪一筆
+
     // Scaffold 提供了一個基本的畫面骨架，跟 Flutter 的 Scaffold 概念完全一模一樣！
     Scaffold(
         containerColor = Color(0xFFF0F5F1),
@@ -121,32 +123,47 @@ fun CropListScreen(viewModel: CropListViewModel) {
                         },
                         content = {
                             // 4. 這是原本顯示在最上層的卡片
-                            CropItemCard(record = record)
+                            CropItemCard(record = record, onClick = {recordToEdit = record})
                         }
                     )
                 }
             }
         }
         // 判斷是否要顯示對話框
-        if (showAddDialog) {
+        if (showAddDialog || recordToEdit != null) {
             AddCropDialog(
+                initialRecord = recordToEdit,
                 onDismiss = {
                     // 按下取消時，關閉對話框
                     showAddDialog = false
+                    recordToEdit = null
                 },
                 onConfirm = { inputDate, inputCropName, inputField, inputTask, inputFertilizer, inputAmount ->
-                    // 按下儲存時：
-                    // 1. 呼叫 ViewModel 寫入真實資料
-                    viewModel.addCropRecord(
-                        date = inputDate,
-                        cropName = inputCropName,
-                        field = inputField,
-                        task = inputTask,
-                        fertilizerName = inputFertilizer,
-                        amount = inputAmount
-                    )
+                    if (recordToEdit != null){
+                        val updatedRecord = recordToEdit!!.copy(
+                            date = inputDate,
+                            cropName = inputCropName,
+                            field = inputField,
+                            task = inputTask,
+                            fertilizerName = inputFertilizer,
+                            amount = inputAmount
+                        )
+                        viewModel.updateCropRecord(updatedRecord)
+                    }else {
+                        // 按下儲存時：
+                        // 1. 呼叫 ViewModel 寫入真實資料
+                        viewModel.addCropRecord(
+                            date = inputDate,
+                            cropName = inputCropName,
+                            field = inputField,
+                            task = inputTask,
+                            fertilizerName = inputFertilizer,
+                            amount = inputAmount
+                        )
+                    }
                     // 2. 關閉對話框
                     showAddDialog = false
+                    recordToEdit = null
                 }
             )
         }
