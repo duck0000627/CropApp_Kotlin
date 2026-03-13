@@ -18,5 +18,6 @@ data class CropRecord (
     val amount: Double = 0.0,       // 用量
     val unit: String? = "kg",  // 單位
     val timestamp: Long = System.currentTimeMillis(), // 紀錄時間
-    val isSynced: Boolean = false  //tag
+    val isSynced: Boolean = false,  // tag
+    val isDeleted: Boolean = false //墓碑
 )

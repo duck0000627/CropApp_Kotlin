@@ -43,10 +43,13 @@ class CropRepository(private val cropDao: CropDao) {
 
     //刪除
     suspend fun deleteCrop(crop: CropRecord) {
-        cropDao.deleteCrop(crop)
+        // 1. 軟刪除：把資料標記為死亡 (畫面會立刻消失)
+        val deadCrop = crop.copy(isDeleted = true, isSynced = false)
+        cropDao.updateCrop(deadCrop)
 
         try {
             RetrofitClient.apiService.deleteCropFromNetwork(crop.id)
+            cropDao.trulyDeleteCrop(deadCrop)
             Log.d("API", "雲端資料刪除成功")
         } catch (e: Exception) {
             Log.e("API", "雲端刪除失敗")
@@ -55,6 +58,16 @@ class CropRepository(private val cropDao: CropDao) {
 
     //資料同步 (Sync)
     suspend fun refreshCrops() {
+        val pendingDeletes = cropDao.getPendingDeletes()
+        for (ghost in pendingDeletes) {
+            try {
+                RetrofitClient.apiService.deleteCropFromNetwork(ghost.id)
+                cropDao.trulyDeleteCrop(ghost) // 雲端刪了，本地也終於可以真刪了
+            } catch (e: Exception) {
+                Log.e("API_SYNC", "這隻幽靈 ${ghost.cropName} 還是刪不掉，繼續留著墓碑。")
+            }
+        }
+
         try {
             // 🛡️ 階段一：救援行動 (把斷網時累積的本地資料送上雲端)
             val unsyncedCrops = cropDao.getUnsyncedCrops()
