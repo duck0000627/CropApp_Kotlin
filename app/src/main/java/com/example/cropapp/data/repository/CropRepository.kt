@@ -31,10 +31,12 @@ class CropRepository(private val cropDao: CropDao) {
 
     //edit
     suspend fun updateCrop(crop: CropRecord) {
-        cropDao.updateCrop(crop)
+        val dirtyCrop = crop.copy(isSynced = false)
+        cropDao.updateCrop(dirtyCrop)
 
         try {
-            RetrofitClient.apiService.updateCropToNetwork(crop.id, crop)
+            RetrofitClient.apiService.updateCropToNetwork(dirtyCrop.id, dirtyCrop)
+            cropDao.updateCrop(dirtyCrop.copy(isSynced = true))
             Log.d("API", "雲端資料修改成功！")
         } catch (e: Exception) {
             Log.e("API", "雲端修改失敗")
@@ -63,7 +65,13 @@ class CropRepository(private val cropDao: CropDao) {
             try {
                 RetrofitClient.apiService.deleteCropFromNetwork(ghost.id)
                 cropDao.trulyDeleteCrop(ghost) // 雲端刪了，本地也終於可以真刪了
-            } catch (e: Exception) {
+            } catch (e: retrofit2.HttpException) {
+                if (e.code() == 404) {
+                    Log.d("API_SYNC", "雲端根本沒這筆資料 (404)，直接從本地火化！")
+                    cropDao.trulyDeleteCrop(ghost)
+                } else {
+                    Log.e("API_SYNC", "伺服器錯誤 ${e.code()}，保留墓碑。")
+                }
                 Log.e("API_SYNC", "這隻幽靈 ${ghost.cropName} 還是刪不掉，繼續留著墓碑。")
             }
         }
@@ -71,14 +79,17 @@ class CropRepository(private val cropDao: CropDao) {
         try {
             // 🛡️ 階段一：救援行動 (把斷網時累積的本地資料送上雲端)
             val unsyncedCrops = cropDao.getUnsyncedCrops()
-            for (crop in unsyncedCrops) {
+            if (unsyncedCrops.isNotEmpty()) {
                 try {
-                    // 偷偷補上傳
-                    RetrofitClient.apiService.uploadCropToNetwork(crop)
-                    // 成功後，在本地把它標記成已同步
-                    cropDao.updateCrop(crop.copy(isSynced = true))
+                    // 1. 一次把整批資料丟給 C# 的 Upsert 接口
+                    RetrofitClient.apiService.syncCropsToNetwork(unsyncedCrops)
+
+                    // 2. 成功後，把它們全部蓋上「已同步」乖寶寶印章，存回本地
+                    val nowSyncedCrops = unsyncedCrops.map { it.copy(isSynced = true) }
+                    cropDao.insertAllCrops(nowSyncedCrops)
+                    Log.d("API_SYNC", "成功批次上傳了 ${unsyncedCrops.size} 筆資料！")
                 } catch (e: Exception) {
-                    Log.e("API_SYNC", "這筆 ${crop.cropName} 還是傳不上去，下次再試。")
+                    Log.e("API_SYNC", "批次上傳失敗，等下次連線再試。")
                 }
             }
 

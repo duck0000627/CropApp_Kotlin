@@ -15,6 +15,10 @@ interface CropApiService {
     @POST("api/crops")
     suspend fun uploadCropToNetwork(@Body crop: CropRecord): CropRecord
 
+    // ☁️ 【新增】呼叫 C# 的智慧同步接口，一次傳送一整個 List
+    @POST("api/Crops/sync")
+    suspend fun syncCropsToNetwork(@Body crops: List<CropRecord>)
+
     //修改雲端資料的 PUT
     // 注意網址後面的 {id}，這是動態替換的變數
     @PUT("api/crops/{id}")
