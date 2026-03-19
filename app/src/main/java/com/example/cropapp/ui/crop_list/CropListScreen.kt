@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,9 +49,9 @@ fun CropListScreen(viewModel: CropListViewModel) {
 
     // 宣告一個變數，用來控制是否要顯示「新增表單對話框」
     // 預設為 false (不顯示)
-    var showAddDialog by remember { mutableStateOf(false) }
+    var showAddDialog by rememberSaveable { mutableStateOf(false) }
 
-    var recordToEdit by remember { mutableStateOf<CropRecord?>(null) } //記住正在編輯哪一筆
+    var recordToEdit by rememberSaveable { mutableStateOf<CropRecord?>(null) } //記住正在編輯哪一筆
 
     // Scaffold 提供了一個基本的畫面骨架，跟 Flutter 的 Scaffold 概念完全一模一樣！
     Scaffold(
