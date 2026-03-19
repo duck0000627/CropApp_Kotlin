@@ -16,7 +16,8 @@ class CropRepository(private val cropDao: CropDao) {
     // 新增一筆農作物紀錄
     suspend fun insertCrop(crop: CropRecord) {
         //先存入本地資料庫 (Room)，確保畫面能立刻更新
-        cropDao.insertCrop(crop)
+        val newCrop = crop.copy(isSynced = false)
+        cropDao.insertCrop(newCrop)
 
         //接著，在背景把這筆資料上傳給雲端
         try {
